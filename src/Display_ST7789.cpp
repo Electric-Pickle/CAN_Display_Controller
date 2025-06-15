@@ -1,4 +1,4 @@
-#include "Display_ST7789.h"
+#include "../include/Display_ST7789.h"
 
 SPIClass LCDspi(FSPI);
 void SPI_Init()

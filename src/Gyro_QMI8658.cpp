@@ -1,4 +1,4 @@
-#include "Gyro_QMI8658.h"
+#include "../include/Gyro_QMI8658.h"
 
 IMUdata Accel;
 IMUdata Gyro;

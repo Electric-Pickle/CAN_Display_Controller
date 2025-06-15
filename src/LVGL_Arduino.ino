@@ -3,15 +3,14 @@
 
 #include "../include/pin_config.h"
 #include "../include/CAN.h"
-
-#include "Display_ST7789.h"
-#include "RTC_PCF85063.h"
-#include "Gyro_QMI8658.h"
-#include "LVGL_Driver.h"
 #include "ui.h"
-#include "PWR_Key.h"
-// #include "LVGL_Example.h"
-#include "BAT_Driver.h"
+
+#include "../include/Display_ST7789.h"
+#include "../include/RTC_PCF85063.h"
+#include "../include/Gyro_QMI8658.h"
+#include "../include/LVGL_Driver.h"
+#include "../include/PWR_Key.h"
+#include "../include/BAT_Driver.h"
 
 void DriverTask(void *parameter) {
   while(1){
@@ -51,8 +50,10 @@ void setup()
   Lvgl_Init();
 
   ui_init();
-  // Lvgl_Example1();
   Driver_Loop();
+
+    Serial.begin(115200); // virtual COM via programmer
+
 }
 
 void loop()
