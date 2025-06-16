@@ -4,6 +4,6 @@
 #define CAN_RX 44
 
 #define sw1pin 15
-#define sw2pin 16
+#define sw2pin 18
 
 #define bootBTN 0
