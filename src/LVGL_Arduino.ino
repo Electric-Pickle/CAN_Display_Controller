@@ -16,6 +16,14 @@
 
 void DriverTask(void *parameter)
 {
+  static CANbus::share_data_t data_save;
+  data_save.current = 10.0f;
+  data_save.volts = 10.0f;
+  data_save.t_highest = 10.0f;
+  data_save.t_lowest = 10.0f;
+  data_save.soc = 10.0f;
+  data_save.op_sts = 5u;
+  data_save.bus_sts = 5u;
   while (1)
   {
     PWR_Loop();
@@ -31,7 +39,6 @@ void DriverTask(void *parameter)
     CANbus::share_data_t data = CANbus::get_message_data();
     if (CANbus::get_rx_OK())
     {
-      static CANbus::share_data_t data_save;
 
       Serial.print("COMMS");
       lv_label_set_text(ui_COMMS, "COMMS OK");
@@ -70,7 +77,7 @@ void DriverTask(void *parameter)
         lv_label_set_text(ui_TEMP, print_str);
       }
       // line 4, soc
-      if (data.t_lowest != data_save.t_lowest)
+      if (data.soc != data_save.soc)
       {
         itoa(roundf(data.soc), print_str, 10u);
         strcat(print_str, "% ");
