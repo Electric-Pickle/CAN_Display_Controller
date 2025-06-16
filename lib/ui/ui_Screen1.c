@@ -56,7 +56,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_SOC, 300);
     lv_obj_set_height(ui_SOC, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_SOC, 0);
-    lv_obj_set_y(ui_SOC, -3);
+    lv_obj_set_y(ui_SOC, -43);
     lv_obj_set_align(ui_SOC, LV_ALIGN_CENTER);
     lv_label_set_text(ui_SOC, "SOC");
 
@@ -64,7 +64,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_TEXT1, 300);
     lv_obj_set_height(ui_TEXT1, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_TEXT1, 0);
-    lv_obj_set_y(ui_TEXT1, -43);
+    lv_obj_set_y(ui_TEXT1, -23);
     lv_obj_set_align(ui_TEXT1, LV_ALIGN_CENTER);
     lv_label_set_text(ui_TEXT1, "TEXT1");
 
@@ -72,7 +72,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_TEXT2, 300);
     lv_obj_set_height(ui_TEXT2, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_TEXT2, 0);
-    lv_obj_set_y(ui_TEXT2, -23);
+    lv_obj_set_y(ui_TEXT2, -3);
     lv_obj_set_align(ui_TEXT2, LV_ALIGN_CENTER);
     lv_label_set_text(ui_TEXT2, "TEXT2");
 

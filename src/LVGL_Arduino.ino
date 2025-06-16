@@ -31,13 +31,91 @@ void DriverTask(void *parameter)
     CANbus::share_data_t data = CANbus::get_message_data();
     if (CANbus::get_rx_OK())
     {
+      static CANbus::share_data_t data_save;
+
       Serial.print("COMMS");
       lv_label_set_text(ui_COMMS, "COMMS OK");
-      char print_str[15];
-      itoa(roundf(data.volts), print_str, 10);
-      lv_label_set_text(ui_VOLT, print_str);
-      itoa(roundf(data.current), print_str, 10);
-      lv_label_set_text(ui_POWER, print_str);
+      char print_str[30];
+      char print_str2[15];
+      char print_str3[15];
+      // line 1, Actual Performance
+      if ((data.volts != data_save.volts) || (data.current != data_save.current)) // only rewite the line if there are changes to the data
+      {
+        itoa(roundf(data.volts), print_str, 10u);
+        itoa(roundf(data.current), print_str2, 10u);
+        data.power = data.volts * data.current;
+        itoa(roundf((data.power / 1000.0f)), print_str3, 10u);
+        strcat(print_str, "v ");
+        strcat(print_str, print_str2);
+        strcat(print_str, "a ");
+        strcat(print_str, print_str3);
+        strcat(print_str, "kw");
+        lv_label_set_text(ui_VOLT, print_str);
+      }
+      // line 2, Allowed Power limits
+      if ((data.power_crg != data_save.power_crg) || (data.power_dsg != data_save.power_dsg)) // only rewite the line if there are changes to the data
+      {
+        itoa(roundf(data.power_dsg), print_str, 10u);
+        itoa(roundf(data.power_crg), print_str2, 10u);
+        strcat(print_str, "kw dsg ");
+        strcat(print_str, print_str2);
+        strcat(print_str, "kw crg");
+        lv_label_set_text(ui_POWER, print_str);
+      }
+      // line 3, TEMP average
+      if ((data.t_lowest != data_save.t_lowest) || (data.t_highest != data_save.t_highest)) // only rewite the line if there are changes to the data
+      {
+        itoa(roundf((data.t_lowest + data.t_highest) / 2.0f), print_str, 10u);
+        strcat(print_str, "c ");
+        lv_label_set_text(ui_TEMP, print_str);
+      }
+      // line 4, soc
+      if (data.t_lowest != data_save.t_lowest)
+      {
+        itoa(roundf(data.soc), print_str, 10u);
+        strcat(print_str, "% ");
+        lv_label_set_text(ui_SOC, print_str);
+      }
+      // line 5, op sts
+      if (data.op_sts != data_save.op_sts)
+      {
+        switch (data.op_sts)
+        {
+        case CANbus::OP_STATUS_T::STATUS_OK:
+          lv_label_set_text(ui_TEXT1, "OP OK");
+          break;
+        case CANbus::OP_STATUS_T::STATUS_FAULTED:
+          lv_label_set_text(ui_TEXT1, "OP FAULTED");
+          break;
+        default:
+          lv_label_set_text(ui_TEXT1, "OP NA");
+          break;
+        }
+      }
+      // line 6, BUS sts
+      if (data.bus_sts != data_save.bus_sts)
+      {
+        switch (data.bus_sts)
+        {
+        case CANbus::BUS_STATUS_T::BUS_OFF:
+          lv_label_set_text(ui_TEXT2, "BUS OFF");
+          break;
+        case CANbus::BUS_STATUS_T::BUS_ON:
+          lv_label_set_text(ui_TEXT2, "BUS ON");
+          break;
+        case CANbus::BUS_STATUS_T::PRECHARGE:
+          lv_label_set_text(ui_TEXT2, "BUS PRECAHRGE");
+          break;
+        case CANbus::BUS_STATUS_T::STOP_REQ:
+          lv_label_set_text(ui_TEXT2, "BUS STOP");
+          break;
+        default:
+          lv_label_set_text(ui_TEXT2, "BUS NA");
+          break;
+        }
+      }
+
+      data_save = data; // update previous data to match current data for next comparison
     }
     else
     {

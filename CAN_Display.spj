@@ -513,7 +513,7 @@
                 "strtype": "OBJECT/Position",
                 "intarray": [
                   0,
-                  -3
+                  -43
                 ],
                 "InheritedType": 7
               },
@@ -656,7 +656,7 @@
                 "strtype": "OBJECT/Position",
                 "intarray": [
                   0,
-                  -43
+                  -23
                 ],
                 "InheritedType": 7
               },
@@ -799,7 +799,7 @@
                 "strtype": "OBJECT/Position",
                 "intarray": [
                   0,
-                  -23
+                  -3
                 ],
                 "InheritedType": 7
               },
@@ -1500,7 +1500,7 @@
     "uiExportFolderPath": "C:\\repos\\platformio_projects\\CAN_Display_Controller\\lib\\ui",
     "projectExportFolderPath": "C:\\repos\\platformio_projects\\CAN_Display_Controller",
     "custom_variable_prefix": "uic",
-    "backup_cnt": 9,
+    "backup_cnt": 10,
     "autosave_cnt": 0,
     "group_color_cnt": 0,
     "lvgl_version": "8.3.11",
