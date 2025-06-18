@@ -61,19 +61,14 @@ void Lvgl_Init(void)
   /*Initialize the display*/
   static lv_disp_drv_t disp_drv;
   lv_disp_drv_init( &disp_drv );
-  /*Change the following line to your display resolution*/
   disp_drv.hor_res = LVGL_WIDTH;
   disp_drv.ver_res = LVGL_HEIGHT;
   disp_drv.sw_rotate = 1;
   disp_drv.rotated = LV_DISP_ROT_90;
-  // disp_drv.rotated = LV_DISP_ROT_NONE;
   disp_drv.flush_cb = Lvgl_Display_LCD;
-  disp_drv.full_refresh = 1;                    /**< 1: Always make the whole screen redrawn*/
+  disp_drv.full_refresh = 0;                    /**< 1: Always make the whole screen redrawn*/
   disp_drv.draw_buf = &draw_buf;
-  // lvgl_disp = lv_disp_drv_register( &disp_drv );
   lv_disp_drv_register( &disp_drv );
-
-  //  lv_disp_set_rotation(lvgl_disp, (lv_disp_rot_t)LV_DISP_ROT_90);
 
   /*Initialize the (dummy) input device driver*/
   static lv_indev_drv_t indev_drv;

@@ -8,121 +8,89 @@
 #include "../lib/ui/ui.h"
 
 #include "../include/Display_ST7789.h"
-#include "../include/RTC_PCF85063.h"
-#include "../include/Gyro_QMI8658.h"
 #include "../include/LVGL_Driver.h"
+// #include "../include/RTC_PCF85063.h"
+// #include "../include/Gyro_QMI8658.h"
 #include "../include/PWR_Key.h"
 #include "../include/BAT_Driver.h"
 
-void DriverTask(void *parameter)
+void CANbusTask(void *parameter)
 {
-  static CANbus::share_data_t data_save;
-  data_save.current = 10.0f;
-  data_save.volts = 10.0f;
-  data_save.t_highest = 10.0f;
-  data_save.t_lowest = 10.0f;
-  data_save.soc = 10.0f;
-  data_save.op_sts = 5u;
-  data_save.bus_sts = 5u;
   while (1)
   {
-    PWR_Loop();
-    BAT_Get_Volts();
-    PCF85063_Loop();
-    QMI8658_Loop();
-    CANbus::hv_vs_frame();
+    CANbus::hv_vs_frame(); // send this frame for funsies, only really needed once
     if (!digitalRead(sw2pin))
     {
-      CANbus::enable_pack(static_cast<CANbus::CMD_STS_T>(!digitalRead(sw1pin)));
+      CANbus::enable_pack(static_cast<CANbus::CMD_STS_T>(!digitalRead(sw1pin))); // send the command frame
     }
+    vTaskDelay(pdMS_TO_TICKS(10)); // limit the loop to 10ms
+  }
+}
+
+void ProcessTask(void *parameter)
+{
+  while (1)
+  {
+    // PCF85063_Loop(); // RTC
+    // QMI8658_Loop(); // IMU
 
     CANbus::share_data_t data = CANbus::get_message_data();
     if (CANbus::get_rx_OK())
     {
-
-      Serial.print("COMMS");
       lv_label_set_text(ui_COMMS, "COMMS OK");
       char print_str[30];
-      char print_str2[15];
-      char print_str3[15];
+      char print_str2[30];
+
       // line 1, Actual Performance
-      if ((data.volts != data_save.volts) || (data.current != data_save.current)) // only rewite the line if there are changes to the data
-      {
-        itoa(roundf(data.volts), print_str, 10u);
-        itoa(roundf(data.current), print_str2, 10u);
-        data.power = data.volts * data.current;
-        itoa(roundf((data.power / 1000.0f)), print_str3, 10u);
-        strcat(print_str, "v ");
-        strcat(print_str, print_str2);
-        strcat(print_str, "a ");
-        strcat(print_str, print_str3);
-        strcat(print_str, "kw");
-        lv_label_set_text(ui_VOLT, print_str);
-      }
+      data.power = data.volts * data.current;
+      snprintf(print_str, 30, "%0.1fv %0.1fa %0.2fkw", data.volts, data.current, (data.power / 1000.0f));
+      lv_label_set_text(ui_VOLT, print_str);
+
       // line 2, Allowed Power limits
-      if ((data.power_crg != data_save.power_crg) || (data.power_dsg != data_save.power_dsg)) // only rewite the line if there are changes to the data
-      {
-        itoa(roundf(data.power_dsg), print_str, 10u);
-        itoa(roundf(data.power_crg), print_str2, 10u);
-        strcat(print_str, "kw dsg ");
-        strcat(print_str, print_str2);
-        strcat(print_str, "kw crg");
-        lv_label_set_text(ui_POWER, print_str);
-      }
+      snprintf(print_str, 30, "%0.1fkw dsg %0.1fkw crg", data.power_dsg, data.power_crg);
+      lv_label_set_text(ui_POWER, print_str);
+
       // line 3, TEMP average
-      if ((data.t_lowest != data_save.t_lowest) || (data.t_highest != data_save.t_highest)) // only rewite the line if there are changes to the data
-      {
-        itoa(roundf((data.t_lowest + data.t_highest) / 2.0f), print_str, 10u);
-        strcat(print_str, "c ");
-        lv_label_set_text(ui_TEMP, print_str);
-      }
+      snprintf(print_str, 30, "%0.1fdeg c", (data.t_lowest + data.t_highest) / 2.0f);
+      lv_label_set_text(ui_TEMP, print_str);
+
       // line 4, soc
-      if (data.soc != data_save.soc)
+      snprintf(print_str, 30, "%0.1f %", data.soc);
+      lv_label_set_text(ui_SOC, print_str);
+
+      // line 5, OP sts
+      switch (data.op_sts)
       {
-        itoa(roundf(data.soc), print_str, 10u);
-        strcat(print_str, "% ");
-        lv_label_set_text(ui_SOC, print_str);
-      }
-      // line 5, op sts
-      if (data.op_sts != data_save.op_sts)
-      {
-        switch (data.op_sts)
-        {
-        case CANbus::OP_STATUS_T::STATUS_OK:
-          lv_label_set_text(ui_TEXT1, "OP OK");
-          break;
-        case CANbus::OP_STATUS_T::STATUS_FAULTED:
-          lv_label_set_text(ui_TEXT1, "OP FAULTED");
-          break;
-        default:
-          lv_label_set_text(ui_TEXT1, "OP NA");
-          break;
-        }
-      }
-      // line 6, BUS sts
-      if (data.bus_sts != data_save.bus_sts)
-      {
-        switch (data.bus_sts)
-        {
-        case CANbus::BUS_STATUS_T::BUS_OFF:
-          lv_label_set_text(ui_TEXT2, "BUS OFF");
-          break;
-        case CANbus::BUS_STATUS_T::BUS_ON:
-          lv_label_set_text(ui_TEXT2, "BUS ON");
-          break;
-        case CANbus::BUS_STATUS_T::PRECHARGE:
-          lv_label_set_text(ui_TEXT2, "BUS PRECAHRGE");
-          break;
-        case CANbus::BUS_STATUS_T::STOP_REQ:
-          lv_label_set_text(ui_TEXT2, "BUS STOP");
-          break;
-        default:
-          lv_label_set_text(ui_TEXT2, "BUS NA");
-          break;
-        }
+      case CANbus::OP_STATUS_T::STATUS_OK:
+        lv_label_set_text(ui_TEXT1, "OP OK");
+        break;
+      case CANbus::OP_STATUS_T::STATUS_FAULTED:
+        lv_label_set_text(ui_TEXT1, "OP FAULTED");
+        break;
+      default:
+        lv_label_set_text(ui_TEXT1, "OP NA");
+        break;
       }
 
-      data_save = data; // update previous data to match current data for next comparison
+      // line 6, BUS sts
+      switch (data.bus_sts)
+      {
+      case CANbus::BUS_STATUS_T::BUS_OFF:
+        lv_label_set_text(ui_TEXT2, "BUS OFF");
+        break;
+      case CANbus::BUS_STATUS_T::BUS_ON:
+        lv_label_set_text(ui_TEXT2, "BUS ON");
+        break;
+      case CANbus::BUS_STATUS_T::PRECHARGE:
+        lv_label_set_text(ui_TEXT2, "BUS PRECHARGE");
+        break;
+      case CANbus::BUS_STATUS_T::STOP_REQ:
+        lv_label_set_text(ui_TEXT2, "BUS STOPPING");
+        break;
+      default:
+        lv_label_set_text(ui_TEXT2, "BUS NA");
+        break;
+      }
     }
     else
     {
@@ -135,46 +103,57 @@ void DriverTask(void *parameter)
       lv_label_set_text(ui_SOC, "0%");
     }
 
-    vTaskDelay(pdMS_TO_TICKS(50));
+    vTaskDelay(pdMS_TO_TICKS(100));
   }
 }
-void Driver_Loop()
+void CANbus_Loop()
 {
-  xTaskCreatePinnedToCore(
-      DriverTask,
-      "DriverTask",
+  xTaskCreate(
+      CANbusTask,
+      "CANbusTask",
       4096,
       NULL,
       3,
+      NULL);
+}
+void Process_Loop()
+{
+  xTaskCreate(
+      ProcessTask,
+      "ProcessTask",
+      4096,
       NULL,
-      0);
+      4,
+      NULL);
 }
 void setup()
 {
-  vTaskDelay(pdMS_TO_TICKS(100)); // make sure we boot good n proper before we do any configuring and using the boot button as an input
-  PWR_Init();                     // POWER LATCH/UNLATCH
-  BAT_Init();                     // BAT VOLTAGE READOUT
-  I2C_Init();                     // TOUCH ?!?
-  PCF85063_Init();                // RTC
-  QMI8658_Init();                 // IMU
+  PWR_Init(); // POWER LATCH/UNLATCH
+  BAT_Init(); // BAT VOLTAGE READOUT
+  // I2C_Init();      // I2C for RTC and IMU comms
+  // PCF85063_Init(); // RTC
+  // QMI8658_Init();  // IMU
 
   CANbus::init();
   pinMode(sw1pin, INPUT_PULLUP);
   pinMode(sw2pin, INPUT_PULLUP);
-  pinMode(bootBTN, INPUT); // be carefull with this not to interfere with booting
+  // pinMode(bootBTN, INPUT); // be carefull with this not to interfere with booting
 
   Backlight_Init(); // ...
   LCD_Init();
   Lvgl_Init();
 
   ui_init();
-  Driver_Loop();
+  CANbus_Loop();
+  Process_Loop();
 
   Serial.begin(115200); // virtual COM via programmer
 }
 
 void loop()
 {
-  Lvgl_Loop();
+  Lvgl_Loop(); // keep the timers working
+  PWR_Loop();
+  BAT_Get_Volts(); // read battery voltage
   vTaskDelay(pdMS_TO_TICKS(5));
 }

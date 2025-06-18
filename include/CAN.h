@@ -28,7 +28,7 @@
 // 2b 0 CONN_CMD
 #define HESSC1 0x0C1B5B05
 
-#define RX_TIMEOUT_MS 1000
+#define RX_TIMEOUT_MS 2000
 
 #define LED1_ON digitalWrite(led1pin, LOW)
 #define LED1_OFF digitalWrite(led1pin, HIGH)
