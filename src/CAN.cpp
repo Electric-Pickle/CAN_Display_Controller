@@ -132,18 +132,18 @@ namespace CANbus
         xTaskCreate(
             rx_handler_task, /* Function to implement the task */
             "RXHandle",      /* Name of the task */
-            10000,           /* Stack size in words */
+            4096,           /* Stack size in words */
             NULL,            /* Task input parameter */
-            24,              /* Priority of the task */
+            5,              /* Priority of the task */
             &RXHandle);      /* Task handle. */
 
         //  create RX timeout task
         xTaskCreate(
             rx_timeout_task, /* Function to implement the task */
             "RXTimeout",     /* Name of the task */
-            10000,           /* Stack size in words */
+            4096,           /* Stack size in words */
             NULL,            /* Task input parameter */
-            25,              /* Priority of the task */
+            6,              /* Priority of the task */
             &RXTimeout);     /* Task handle. */
 
         // LED1_OFF;
